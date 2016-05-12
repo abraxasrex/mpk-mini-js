@@ -13,7 +13,7 @@ var control_settings = {
   '1':{
     name:'mod1',
     qual:'freq',
-    multiplier:1/10
+    multiplier:1
   },
   '2':{
     name:'mod2',
@@ -26,8 +26,9 @@ var control_settings = {
     multiplier:1/10
   },
   '4':{
-    name:'mod1',
-    multiplier:0.001
+    name:'drum1',
+    qual:'speed',
+    multiplier:1/10
   },
   '5':{
     name:'mod2',
@@ -80,33 +81,37 @@ var moogSynth = flock.synth({
 function sendCtrl(msg){
   var setting = control_settings[msg.controller].name.toString() + '.' + control_settings[msg.controller].qual.toString();
   synths.forEach(function(syn){
-    syn.set(setting, (control_settings[msg.controller]['multiplier'] * msg.value));
-  })
+    if(!!syn.namedNodes[control_settings[msg.controller].name]){
+      syn.set(setting, (control_settings[msg.controller]['multiplier'] * msg.value));
+      console.log(setting, 'syn setting');
+    }
+  });
 }
 
 function sendNote(msg){
   enviro.nodes[enviro.nodes.length-1].set('carrier.freq', flock.midiFreq(msg.note));
 }
 
+
 input.on('noteon', function (msg) {
   synthCount +=1;
   synthNote(msg.note);
 
   synths.forEach(function(syn){
-    syn.mul = 100 / synthCount;
+  //  syn.mul = 100 / synthCount;
   });
   sendNote(msg);
 });
 
+
 input.on('noteoff', function (msg) {
-  synthCount -=1;
-  console.log(Math.floor(flock.midiFreq(msg.note), 'note msg'));
-  enviro.nodes.forEach(function(node){
-    console.log(Math.floor(node.namedNodes["carrier"].inputs.freq.output["0"]));
+  synths.forEach(function(syn){
+  //  syn.mul = 100 / synthCount;
   });
+  synthCount -=1;
 
   enviro.nodes.forEach(function(syn){
-    if(Math.floor(syn.namedNodes["carrier"].inputs.freq.output["0"]) == Math.floor(flock.midiFreq(msg.note))){
+    if(syn.namedNodes["carrier"] && Math.floor(syn.namedNodes["carrier"].inputs.freq.output["0"]) == Math.floor(flock.midiFreq(msg.note))){
       console.log('note match');
       synths.splice(synths.indexOf(syn), 1);
       syn.destroy();
@@ -118,5 +123,20 @@ input.on('cc', function(msg){
   sendCtrl(msg);
 });
 
+var drum = flock.synth({
+    synthDef: {
+        id:'drum1',
+        ugen: "flock.ugen.playBuffer",
+        buffer: {
+            id: "drum",
+            url: "./drumkit/clap.wav"
+        },
+        loop: 1,
+        start: 0,
+        speed:0.5
+    }
+});
+synths.push(drum);
+// drum.play();
+
 enviro.start();
-//synthNote();
