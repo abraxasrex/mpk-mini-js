@@ -5,6 +5,10 @@ var fluid = require("infusion"),
     flock = require(__dirname + "/node_modules/flocking/nodejs/index.js"), //jshint ignore:line
     enviro = flock.init();
 
+var synthCount = 1;
+//var synth;
+var synths = [];
+
 var control_settings = {
   '1':{
     name:'mod1',
@@ -43,26 +47,9 @@ var control_settings = {
   }
 }
 
-input.on('noteon', function (msg) {
-  sendNote(msg);
-});
+function synthNote(note){
 
-input.on('cc', function(msg){
-  sendCtrl(msg);
-});
-
-function sendCtrl(msg){
-  var setting = control_settings[msg.controller].name.toString() + '.' + control_settings[msg.controller].qual.toString();
-  //console.log(setting);
-  synth.set(setting, (control_settings[msg.controller]['multiplier'] * msg.value));
-  console.log(control_settings[msg.controller]['multiplier'] * msg.value);
-}
-
-function sendNote(msg){
-  synth.set('carrier.freq', flock.midiFreq(msg.note));
-}
-
-var synth = flock.synth({
+var moogSynth = flock.synth({
     synthDef: {
             id:'mod3',
             ugen: "flock.ugen.filter.moog",
@@ -87,6 +74,49 @@ var synth = flock.synth({
         mul: 0.5
     }
 });
+  synths.push(moogSynth);
+}
+
+function sendCtrl(msg){
+  var setting = control_settings[msg.controller].name.toString() + '.' + control_settings[msg.controller].qual.toString();
+  synths.forEach(function(syn){
+    syn.set(setting, (control_settings[msg.controller]['multiplier'] * msg.value));
+  })
+}
+
+function sendNote(msg){
+  enviro.nodes[enviro.nodes.length-1].set('carrier.freq', flock.midiFreq(msg.note));
+}
+
+input.on('noteon', function (msg) {
+  synthCount +=1;
+  synthNote(msg.note);
+
+  synths.forEach(function(syn){
+    syn.mul = 100 / synthCount;
+  });
+  sendNote(msg);
+});
+
+input.on('noteoff', function (msg) {
+  synthCount -=1;
+  console.log(Math.floor(flock.midiFreq(msg.note), 'note msg'));
+  enviro.nodes.forEach(function(node){
+    console.log(Math.floor(node.namedNodes["carrier"].inputs.freq.output["0"]));
+  });
+
+  enviro.nodes.forEach(function(syn){
+    if(Math.floor(syn.namedNodes["carrier"].inputs.freq.output["0"]) == Math.floor(flock.midiFreq(msg.note))){
+      console.log('note match');
+      synths.splice(synths.indexOf(syn), 1);
+      syn.destroy();
+    }
+  });
+});
+
+input.on('cc', function(msg){
+  sendCtrl(msg);
+});
 
 enviro.start();
-//synth.play();
+//synthNote();
