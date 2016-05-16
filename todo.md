@@ -4,4 +4,4 @@
 
 3. record audio feature
 
-4.  time schedule drums 
+4.  ~time schedule drums~

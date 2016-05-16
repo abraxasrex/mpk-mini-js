@@ -1,11 +1,14 @@
 var easymidi = require('easymidi');
 var input = new easymidi.Input("MPK mini 20:0");
-
-var fluid = require("infusion"),
-    flock = require(__dirname + "/node_modules/flocking/nodejs/index.js"), //jshint ignore:line
-    enviro = flock.init();
-
+var fluid = require("infusion");
+var flock = require(__dirname + "/node_modules/flocking/nodejs/index.js");
+var enviro = flock.init();
 var synths = [];
+//global bpm
+var bpm = 120;
+//synth effects can track drum tempo!
+var drumFX = 1;
+//note amount tracker
 var synthCount = 1;
 
 /// objects to match up to midi control settings
@@ -60,6 +63,79 @@ var control_settings = {
   }
 };
 
+
+/////drumkit settings
+
+var counters= [0,0,0];
+var schedule = [[0,1,0,1,0,0,0,0,1,0,1,1,0,0,0,0],
+                [0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1],
+                [0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0]];
+//bpm = 120;
+var global_interval;
+var drums = [];
+
+var kick = flock.synth({
+    synthDef: {
+        ugen: "flock.ugen.playBuffer",
+        buffer: {
+            url: "./drumkit/kick.WAV"
+        },
+        trigger: {
+          id:"trig",
+          ugen: "flock.ugen.inputChangeTrigger",
+            source: 0,
+            duration: 0.01
+        }
+    }
+});
+
+var snare = flock.synth({
+    synthDef: {
+        ugen: "flock.ugen.playBuffer",
+        buffer: {
+            url: "./drumkit/snare.WAV"
+        },
+        trigger:  {
+          id:"trig",
+          ugen: "flock.ugen.inputChangeTrigger",
+            source: 0,
+            duration: 0.01
+        }
+    }
+});
+
+var hihat = flock.synth({
+    synthDef: {
+        ugen: "flock.ugen.playBuffer",
+        buffer: {
+            url: "./drumkit/hi hat.wav"
+        },
+        trigger:  {
+          id:"trig",
+          ugen: "flock.ugen.inputChangeTrigger",
+            source: 0,
+            duration: 0.01
+        }
+    }
+});
+
+function drumMachine(){
+  drums.forEach(function(drum, index){
+    drum.set('trig.source', schedule[index][counters[index]]);
+    counters[index] +=1;
+    if(counters[index] === schedule[index].length){
+      counters[index] = 0;
+    }
+  });
+}
+
+function reSchedule(){
+  clearInterval(global_interval);
+  setInterval(drumMachine, (15000/bpm));
+}
+
+//////
+
 function handleNoteOn(msg){
   defineSynth(msg.note);
   enviro.nodes[enviro.nodes.length-1].set('carrier.freq', flock.midiFreq(msg.note));
@@ -86,14 +162,14 @@ function handleCtrl(msg){
 }
 
 function ctrlCheck(){
- for(var num in control_settings){
-   synths.forEach(function(syn){
-    if(!!syn.namedNodes[control_settings[num].name]){
-      var setting = control_settings[num].name.toString() + '.' + control_settings[num].qual.toString();
-       syn.set(setting, (control_settings[num]['multiplier'] * control_settings[num].val));
-     }
-   });
- }
+    for(var num in control_settings){
+      synths.forEach(function(syn){
+       if(!!syn.namedNodes[control_settings[num].name]){
+         var setting = control_settings[num].name.toString() + '.' + control_settings[num].qual.toString();
+          syn.set(setting, (control_settings[num]['multiplier'] * control_settings[num].val));
+        }
+      });
+    }
 }
 
 
@@ -153,53 +229,19 @@ function defineSynth(note){
   synths.push(moogSynth);
 }
 
-
 input.on('noteon', handleNoteOn);
 
 input.on('noteoff', handleNoteOff);
 
 input.on('cc', handleCtrl);
 
-
-
-
-var kick = flock.synth({
-
-        synthDef: {
-            ugen: "flock.ugen.playBuffer",
-            buffer: {
-              url: './drumkit/kick.WAV'
-            },
-            trigger:{
-              id:'kick',
-              ugen: 'flock.ugen.impulse',
-              freq: 2
-            },
-            start:0,
-            loop:1,
-            mul:0.5
-        }
-    });
-synths.push(kick);
-
-var snare = flock.synth({
-    synthDef: {
-      ugen: "flock.ugen.playBuffer",
-      buffer: {
-        url:'./drumkit/snare.WAV',
-      },
-      trigger:{
-          id:'snare',
-          ugen: 'flock.ugen.impulse',
-          freq: 2
-      },
-      start:0,
-      loop:1,
-      mul:0.5
-    }
-});
-synths.push(snare);
-
-
+///init drums
+drums.push(kick);
+drums.push(snare);
+drums.push(hihat);
+global_interval = setInterval(drumMachine, (15000/bpm));
+/////
 
 enviro.start();
+
+//require('./drumkit.js')(enviro);

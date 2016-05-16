@@ -4,6 +4,6 @@
 
 Environments:
 
-1. MIDI Sandbox: customize external midi keyboard settings and play notes/chords as         well as set drum patterns  
+1. Sandbox(all): customize external midi keyboard settings and play notes/chords          as well as set drum patterns  
 
-2. (WIP)HTML GUI Sampler: play on the keyboard
+2. (WIP)HTML GUI Sampler: play on the computer keyboard 
