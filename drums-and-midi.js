@@ -50,14 +50,14 @@ var control_settings = {
     val:1
   },
   '7':{
-    name:'kick',
-    multiplier:1/50,
+    name:'bpm',
+    multiplier:1,
     qual:'freq',
     val:1
   },
   '8':{
-    name:'snare',
-    multiplier:1/50,
+    name:'fast_forward',
+    multiplier:1,
     qual:'freq',
     val:1
   }
@@ -85,7 +85,8 @@ var kick = flock.synth({
           ugen: "flock.ugen.inputChangeTrigger",
             source: 0,
             duration: 0.01
-        }
+        },
+        mul:0.5
     }
 });
 
@@ -100,7 +101,8 @@ var snare = flock.synth({
           ugen: "flock.ugen.inputChangeTrigger",
             source: 0,
             duration: 0.01
-        }
+        },
+        mul:0.5
     }
 });
 
@@ -115,7 +117,8 @@ var hihat = flock.synth({
           ugen: "flock.ugen.inputChangeTrigger",
             source: 0,
             duration: 0.01
-        }
+        },
+        mul:0.5
     }
 });
 
@@ -131,7 +134,7 @@ function drumMachine(){
 
 function reSchedule(){
   clearInterval(global_interval);
-  setInterval(drumMachine, (15000/bpm));
+  global_interval = setInterval(drumMachine, (15000/bpm));
 }
 
 //////
@@ -158,6 +161,20 @@ function handleCtrl(msg){
       control_settings[msg.controller].val = msg.value;
     }
    });
+   if(msg.controller == 7){
+     bpm = msg.value * 2;
+     reSchedule();
+   }
+   if(msg.controller == 8){
+     synths.forEach(function(syn){
+       if(!!syn.namedNodes["carrier"]){
+         console.log('found carrier');
+         syn.set('mod1.freq', bpm/msg.value);
+         syn.set('mod2.freq', bpm/msg.value);
+         syn.set('mod3.freq', bpm/msg.value);
+       }
+     })
+   }
    ctrlCheck();
 }
 
