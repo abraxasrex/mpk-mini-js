@@ -2,8 +2,8 @@
 
 ### a simple-to-use yet powerful midi controller DAW in Javascript
 
-Features:
+Environments:
 
-1. Customizable JSON-defined synthesizers (flocking.js)  
-2. Dynamic sampling using granulator and time engines (waves.js)  
-3.   
+1. MIDI Sandbox: customize external midi keyboard settings and play notes/chords as         well as set drum patterns  
+
+2. (WIP)HTML GUI Sampler: play on the keyboard
