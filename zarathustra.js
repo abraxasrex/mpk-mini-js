@@ -276,7 +276,30 @@ input.on('cc', handleCtrl);
 drums.push(kick);
 drums.push(snare);
 drums.push(hihat);
-global_interval = setInterval(drumMachine, (15000/bpm));
+// global_interval = setInterval(drumMachine, (15000/bpm));
+global_interval = scheduleDrums();
+
+function scheduleDrums(){
+    var start = new Date().getTime(),
+      time = 0,
+      elapsed = '0.0';
+
+  function instance(){
+      time += 100;
+
+      elapsed = Math.floor(time / 100) / 10;
+      if(Math.round(elapsed) == elapsed) {
+        elapsed += '.0';
+      }
+      drumMachine;
+      var diff = (new Date().getTime() - start) - time;
+      setTimeout(instance, (100 - diff));
+  }
+
+  setTimeout(instance, (15000/bpm));
+}
+
+
 /////
 
 //seSynth(0);
