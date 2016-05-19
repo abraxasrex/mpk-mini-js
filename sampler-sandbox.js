@@ -89,7 +89,7 @@ function defineSynth(note){
 var i = 1;
 
 function loadSampler(){
-  if(i < 2){
+  if(i < 127){
       i+=1;
     //  var buffer;
         flock.audio.decode({
