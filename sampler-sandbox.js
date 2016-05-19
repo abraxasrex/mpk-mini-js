@@ -5,24 +5,65 @@ var fluid = require("infusion"),
     flock = require(__dirname + "/node_modules/flocking/nodejs/index.js"), //jshint ignore:line
     enviro = flock.init();
 
-var synthCount = 1;
-
 var sampler = [];
+var synthCount = 0;
+
+var pool = require("./node_modules/pitch-shift/node_modules/typedarray-pool/pool.js")
+var pitchShift = require("pitch-shift")
+
+
+// function createProcessingNode(context) {
+//   var queue = []
+//   var frame_size = 1024
+//   var hop_size = 256
+//
+//   var shifter = pitchShift(function(data) {
+//     var buf = pool.mallocFloat32(data.length)
+//     buf.set(data)
+//     queue.push(buf)
+//   }, function(t, pitch) {
+//     console.log(t, pitch)
+//     return 0.1 * (Math.round(t) % 15) + 0.5
+//   }, {
+//     frameSize: frame_size,
+//     hopSize: hop_size
+//   })
+//
+//   //Enque some garbage to buffer stuff
+//   shifter(new Float32Array(frame_size))
+//   shifter(new Float32Array(frame_size))
+//   shifter(new Float32Array(frame_size))
+//   shifter(new Float32Array(frame_size))
+//   shifter(new Float32Array(frame_size))
+//
+//   //Create a script node
+//   var scriptNode = context.createScriptProcessor(frame_size, 1, 1)
+//   scriptNode.onaudioprocess = function(e){
+//     shifter(e.inputBuffer.getChannelData(0))
+//     var out = e.outputBuffer.getChannelData(0)
+//     var q = queue[0]
+//     queue.shift()
+//     out.set(q)
+//     pool.freeFloat32(q)
+//   }
+//
+//   return scriptNode
+// }
+
+
 
 function handleNoteOn(msg){
   console.log(msg.note, 'note is');
   defineSynth(msg.note);
-//  enviro.nodes[enviro.nodes.length-1].set('strecher.freq', flock.midiFreq(msg.note));
 }
 
 function handleNoteOff(msg){
   synthCount -=1;
   console.log('enviro nodes', enviro.nodes.length);
   sampler.forEach(function(samp){
-  //  if(syn.namedNodes["strecher"] && Math.floor(syn.namedNodes["stretcher"].inputs.freq.output["0"]) == Math.floor(flock.midiFreq(msg.note))){
       samp.destroy();
       sampler.splice(sampler.indexOf(samp), 1);
-//    }
+
   });
 }
 
@@ -32,17 +73,15 @@ function defineSynth(note){
       synthDef: {
         id:'buf',
         ugen: "flock.ugen.readBuffer",
-        buffer: enviro.buffers["bass" + note],
-      rate: note/127
+      //  buffer: enviro.buffers["bass" + note],
+      buffer: {
+        url:'./ah.wav'
+      }
     }
-    });
-    //sample.play();
-    //id: enviro.buffers["bass" + note]
-   //sample["buf"]["buffer"].rate = 366.666667 * note ;
-   //sample.namedNodes["flocking-out"].rate = 336.666667 * note;
-  // sample.namedNodes["buf"].speed = note / 400;
+  });
    sampler.push(sample);
-  // console.log(sample);
+   console.log(sample);
+
 }
 
 //var sample;
@@ -50,7 +89,7 @@ function defineSynth(note){
 var i = 1;
 
 function loadSampler(){
-  if(i < 127){
+  if(i < 2){
       i+=1;
     //  var buffer;
         flock.audio.decode({
@@ -75,7 +114,7 @@ function loadSampler(){
     }
 }
 
-var setter = setInterval(loadSampler, 25);
+//var setter = setInterval(loadSampler, 25);
 
 ///
 

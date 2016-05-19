@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<head>
+    <script src="bundle.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.js"></script> -->
+  <style>
+  body{
+    padding: 25px auto;
+    min-height: 500px;
+  }
+  footer, header{
+    max-width: 100%;
+    padding: 25px;
+    border: solid 1px grey;
+  }
+  header{
+    min-height: 75px;
+  }
+  header > *{
+    display: inline-block;
+    float:left;
+  }
+  section{
+    border: solid 1px black;
+    margin: 10px auto;
+    min-height: 200px;
+  }
+  h1, h3{
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Zarathustra</h1>
+    <canvas height="100px" width = "300px">
+  </header>
+  <main>
+    <section>
+      <h3>drums</h3>
+      <div class="drum-container">
+      </div>
+    </section>
+    <section>
+      <h3>synth</h3>
+      <div class="synth-container">
+      </div>
+    </section>
+  </main>
+  <footer>
+  </footer>
+  <Script src="ctrl.js"></script>
+</body>

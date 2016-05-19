@@ -4,4 +4,10 @@
 
 3. record audio feature
 
-4.  ~time schedule drums~
+4.  fix timer (sitepoint guide)
+
+5. GUI
+
+6. save patterns
+
+7. ionic  
