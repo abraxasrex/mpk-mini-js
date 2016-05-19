@@ -67,8 +67,8 @@ var control_settings = {
 /////drumkit settings
 
 var counters= [0,0,0];
-var schedule = [[0,1,0,1,0,0,0,0,1,0,1,1,0,0,0,0],
-                [0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1],
+var schedule = [[0,1,0,1,0,0,0,0,1,0,1,0,0,1,0,0],
+                [1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0],
                 [0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0]];
 //bpm = 120;
 var global_interval;
@@ -133,8 +133,8 @@ function drumMachine(){
 }
 
 function reSchedule(){
-  clearInterval(global_interval);
-  global_interval = setInterval(drumMachine, (15000/bpm));
+  clearTimeout(global_interval);
+  global_interval = setTimeout(instance, (15000/bpm));
 }
 
 //////
@@ -277,27 +277,26 @@ drums.push(kick);
 drums.push(snare);
 drums.push(hihat);
 // global_interval = setInterval(drumMachine, (15000/bpm));
-global_interval = scheduleDrums();
 
-function scheduleDrums(){
+function instance(){
+    time += 100;
+
+    elapsed = Math.floor(time / 100) / 10;
+    if(Math.round(elapsed) == elapsed) {
+      elapsed += '.0';
+    }
+    drumMachine();
+    var diff = (new Date().getTime() - start) - time;
+    setTimeout(instance, (100 - diff));
+}
+
+
+ ////timing stuff
     var start = new Date().getTime(),
       time = 0,
       elapsed = '0.0';
-
-  function instance(){
-      time += 100;
-
-      elapsed = Math.floor(time / 100) / 10;
-      if(Math.round(elapsed) == elapsed) {
-        elapsed += '.0';
-      }
-      drumMachine;
-      var diff = (new Date().getTime() - start) - time;
-      setTimeout(instance, (100 - diff));
-  }
-
-  setTimeout(instance, (15000/bpm));
-}
+      global_interval = setTimeout(instance, (15000/bpm));
+////
 
 
 /////
@@ -311,4 +310,7 @@ process.stdin.setEncoding('utf8');
 
 process.stdin.on('data', function (res) {
   mainSynth = parseInt(res);
+  if(parseInt(res)===3){
+    console.log('loading samples....');
+  }
 });
